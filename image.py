@@ -1,7 +1,7 @@
 from openai import OpenAI
 import wget
 
-api_key = "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"
+api_key = ""
 client = OpenAI(api_key=api_key)
 
 response = client.images.generate(
