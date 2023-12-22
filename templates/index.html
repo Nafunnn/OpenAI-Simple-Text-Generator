@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>GPT-3.5 Turbo Chat</title>
+    <title>Text Generator</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <link
       rel="stylesheet"
@@ -15,39 +15,53 @@
       <h1 class="text-3xl font-semibold mb-4">GPT-3.5 Turbo Chat</h1>
 
       <div class="overflow-y-auto max-h-80 p-4 bg-white rounded-lg shadow-md mb-4">
-        {% for message in chat_history %}
+        {% for message in chat_history %} {% if message.role == 'system' %}
+        <p class="font-bold">{{ message.role }}: {{ message.content }}</p>
+        {% else %}
         <div class="mb-2 {{ 'self' if message.role == 'user' else 'other' }}">
           <div class="flex items-center justify-between">
-            <p class="text-sm text-gray-600">{{ message.role }}</p>
-            <p class="text-sm text-gray-600">{{ message.timestamp }}</p>
+            <p class="text-sm text-gray-600">{{ message.role }} - {{ message.timestamp }}</p>
           </div>
           <div class="{{ 'bg-blue-200' if message.role == 'user' else 'bg-green-200' }} p-2 rounded-lg">
-            <p class="text-sm">{{ message.content }}</p>
+            <p class="text-sm">{{ message.content|replace('\n','<br />')|safe }}</p>
           </div>
         </div>
-        {% endfor %}
+        {% endif %} {% endfor %}
       </div>
 
-      <form method="post" action="/index" class="flex space-x-2 relative">
-        <input
-          type="text"
-          name="user_message"
-          placeholder="Type your message..."
-          class="flex-grow p-2 rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
-        />
-        <button
-          type="submit"
-          class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
-        >
-          <span>Send</span>
-          <div
-            class="absolute inset-0 flex items-center justify-center opacity-75 bg-white rounded-lg"
-            id="loading"
-            style="display: none"
+      <form method="post" action="/" class="mb-4">
+        <div class="flex items-center gap-4">
+          <input
+            type="text"
+            name="user_message"
+            id="user_message"
+            class="mt-1 p-2 w-full rounded-lg border border-gray-300 focus:outline-none focus:border-blue-500"
+            placeholder="Type your message..."
+          />
+
+          <button
+            type="submit"
+            class="p-2 bg-blue-500 text-white rounded-lg hover:bg-blue-600 focus:outline-none"
           >
-            <i class="fas fa-spinner fa-spin text-gray-500"></i>
-          </div>
-        </button>
+            <span>Send</span>
+            <div
+              class="absolute inset-0 flex items-center justify-center opacity-75 bg-white rounded-lg"
+              id="loading"
+              style="display: none"
+            >
+              <i class="fas fa-spinner fa-spin text-gray-500"></i>
+            </div>
+          </button>
+
+          <!-- Add the clear chat button -->
+          <button
+            type="button"
+            class="p-2 bg-red-500 text-white rounded-lg hover:bg-red-600 focus:outline-none"
+            onclick="clearChat()"
+          >
+            <span>Clear</span>
+          </button>
+        </div>
       </form>
     </div>
 
@@ -55,6 +69,23 @@
       document.querySelector("form").addEventListener("submit", function () {
         document.getElementById("loading").style.display = "flex";
       });
+
+      // JavaScript function to clear the chat
+      function clearChat() {
+        // Send a POST request to the "/clear" route
+        fetch("/clear", {
+          method: "POST",
+        })
+          .then((response) => {
+            // Check if the response is successful and refresh the page
+            if (response.ok) {
+              location.reload();
+            }
+          })
+          .catch((error) => {
+            console.error("Error clearing chat:", error);
+          });
+      }
     </script>
   </body>
 </html>
